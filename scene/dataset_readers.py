@@ -16,6 +16,7 @@ from pathlib import Path
 
 import imageio
 import torch
+import torch.nn.functional as F
 import numpy as np
 from PIL import Image
 from plyfile import PlyData, PlyElement
@@ -346,13 +347,35 @@ def loadCamerasFromData(traindata, white_background):
         T = w2c[:3, 3]
 
         image = frame["image"] if "image" in frame else None
-        im_data = np.array(image.convert("RGBA"))
+        if image is None:
+            raise ValueError(f"Frame {idx} is missing 'image' field")
+        
+        # Ensure image is a PIL Image and has valid dimensions
+        if not isinstance(image, Image.Image):
+            raise TypeError(f"Frame {idx} 'image' must be a PIL Image, got {type(image)}")
+        
+        # Convert to RGBA and validate dimensions
+        image_rgba = image.convert("RGBA")
+        if image_rgba.size[0] < 2 or image_rgba.size[1] < 2:
+            raise ValueError(f"Frame {idx} image has invalid dimensions: {image_rgba.size}. Expected at least 2x2 pixels.")
+        
+        im_data = np.array(image_rgba)
+        
+        # Validate array shape
+        if len(im_data.shape) != 3 or im_data.shape[2] != 4:
+            raise ValueError(f"Frame {idx} im_data has invalid shape: {im_data.shape}. Expected (H, W, 4)")
 
         bg = np.array([1,1,1]) if white_background else np.array([0, 0, 0])
 
         norm_data = im_data / 255.0
         arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + bg * (1 - norm_data[:, :, 3:4])
-        image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
+        
+        # Ensure arr has correct shape and dtype for PIL
+        arr_uint8 = np.clip(arr * 255.0, 0, 255).astype(np.uint8)
+        if len(arr_uint8.shape) != 3 or arr_uint8.shape[2] != 3:
+            raise ValueError(f"Frame {idx} arr has invalid shape: {arr_uint8.shape}. Expected (H, W, 3)")
+        
+        image = Image.fromarray(arr_uint8, "RGB")
         loaded_mask = np.ones_like(norm_data[:, :, 3:4])
 
         fovy = focal2fov(fov2focal(fovx, image.size[1]), image.size[0])
@@ -362,9 +385,41 @@ def loadCamerasFromData(traindata, white_background):
         image = torch.Tensor(arr).permute(2,0,1)
         loaded_mask = None #torch.Tensor(loaded_mask).permute(2,0,1)
 
-        no_loss_mask = frame['no_loss_mask']
-        
-        ### torch
+        # Handle no_loss_mask - ensure it's a torch tensor with correct shape
+        no_loss_mask = frame.get('no_loss_mask', None)
+        if no_loss_mask is not None:
+            # Convert numpy to torch if needed
+            if isinstance(no_loss_mask, np.ndarray):
+                no_loss_mask = torch.from_numpy(no_loss_mask)
+            elif isinstance(no_loss_mask, torch.Tensor):
+                no_loss_mask = no_loss_mask.cpu()
+            
+            # Ensure it's the right shape to match image: (C, H, W) or (1, H, W)
+            if len(no_loss_mask.shape) == 2:
+                # 2D mask: add channel dimension -> (1, H, W)
+                no_loss_mask = no_loss_mask.unsqueeze(0)
+            elif len(no_loss_mask.shape) == 3:
+                # Already 3D, ensure it's (1, H, W) or (C, H, W)
+                if no_loss_mask.shape[0] != 1 and no_loss_mask.shape[0] != image.shape[0]:
+                    # If first dim doesn't match, take first channel or squeeze
+                    if no_loss_mask.shape[0] > 1:
+                        no_loss_mask = no_loss_mask[0:1]
+                    else:
+                        no_loss_mask = no_loss_mask.squeeze(0).unsqueeze(0)
+            
+            # Ensure dtype is bool
+            if no_loss_mask.dtype != torch.bool:
+                no_loss_mask = no_loss_mask.bool()
+            
+            # Ensure shape matches image
+            if no_loss_mask.shape[1:] != image.shape[1:]:
+                # Resize to match image dimensions
+                no_loss_mask = F.interpolate(
+                    no_loss_mask.float().unsqueeze(0),
+                    size=image.shape[1:],
+                    mode='nearest'
+                ).squeeze(0).bool()
+
         cameras.append(Camera(colmap_id=idx, R=R, T=T, FoVx=FovX, FoVy=FovY, image=image, no_loss_mask=no_loss_mask,
                                 gt_alpha_mask=loaded_mask, image_name='', uid=idx, data_device='cuda'))
             

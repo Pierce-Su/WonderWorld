@@ -545,7 +545,22 @@ class FrameSyn(torch.nn.Module):
         frames = []
 
         for i, img in enumerate(self.images):
+            # Validate image tensor shape before conversion
+            if not isinstance(img, torch.Tensor):
+                raise TypeError(f"Image {i} is not a tensor, got {type(img)}")
+            if len(img.shape) != 4 or img.shape[0] != 1:
+                raise ValueError(f"Image {i} has invalid shape: {img.shape}. Expected (1, C, H, W)")
+            if img.shape[1] != 3:
+                raise ValueError(f"Image {i} has invalid channels: {img.shape[1]}. Expected 3 (RGB)")
+            if img.shape[2] < 2 or img.shape[3] < 2:
+                raise ValueError(f"Image {i} has invalid dimensions: {img.shape[2:4]}. Expected at least 2x2 pixels")
+            
             image = ToPILImage()(img[0])
+            
+            # Validate PIL Image
+            if image.size[0] < 2 or image.size[1] < 2:
+                raise ValueError(f"Image {i} PIL Image has invalid size: {image.size}. Expected at least 2x2 pixels")
+            
             no_loss_mask = self.no_loss_masks[i][0] if use_no_loss_mask else None
             transform_matrix_pt3d = self.cameras[i].get_world_to_view_transform().get_matrix()[0]
             transform_matrix_w2c_pt3d = transform_matrix_pt3d.transpose(0, 1)
@@ -579,7 +594,22 @@ class FrameSyn(torch.nn.Module):
                 render_output['rendered_image'] = inpaint_cv2(render_output['rendered_image'], render_output['inpaint_mask'])
             no_loss_mask = render_output['inpaint_mask'][0]
             
-            image = ToPILImage()(render_output['rendered_image'][0])
+            # Validate rendered image before conversion
+            rendered_img = render_output['rendered_image']
+            if not isinstance(rendered_img, torch.Tensor):
+                raise TypeError(f"Sky camera {i} rendered_image is not a tensor, got {type(rendered_img)}")
+            if len(rendered_img.shape) != 4 or rendered_img.shape[0] != 1:
+                raise ValueError(f"Sky camera {i} rendered_image has invalid shape: {rendered_img.shape}. Expected (1, C, H, W)")
+            if rendered_img.shape[1] != 3:
+                raise ValueError(f"Sky camera {i} rendered_image has invalid channels: {rendered_img.shape[1]}. Expected 3 (RGB)")
+            if rendered_img.shape[2] < 2 or rendered_img.shape[3] < 2:
+                raise ValueError(f"Sky camera {i} rendered_image has invalid dimensions: {rendered_img.shape[2:4]}. Expected at least 2x2 pixels")
+            
+            image = ToPILImage()(rendered_img[0])
+            
+            # Validate PIL Image
+            if image.size[0] < 2 or image.size[1] < 2:
+                raise ValueError(f"Sky camera {i} PIL Image has invalid size: {image.size}. Expected at least 2x2 pixels")
             save_root = Path(self.run_dir) / "images"
             # image.save(save_root / "sky_frames" / f"{i:03d}.png")
             
@@ -606,7 +636,22 @@ class FrameSyn(torch.nn.Module):
             frames = []
 
             for i, img in enumerate(self.images_layer):
+                # Validate image tensor shape before conversion
+                if not isinstance(img, torch.Tensor):
+                    raise TypeError(f"Layer image {i} is not a tensor, got {type(img)}")
+                if len(img.shape) != 4 or img.shape[0] != 1:
+                    raise ValueError(f"Layer image {i} has invalid shape: {img.shape}. Expected (1, C, H, W)")
+                if img.shape[1] != 3:
+                    raise ValueError(f"Layer image {i} has invalid channels: {img.shape[1]}. Expected 3 (RGB)")
+                if img.shape[2] < 2 or img.shape[3] < 2:
+                    raise ValueError(f"Layer image {i} has invalid dimensions: {img.shape[2:4]}. Expected at least 2x2 pixels")
+                
                 image = ToPILImage()(img[0])
+                
+                # Validate PIL Image
+                if image.size[0] < 2 or image.size[1] < 2:
+                    raise ValueError(f"Layer image {i} PIL Image has invalid size: {image.size}. Expected at least 2x2 pixels")
+                
                 no_loss_mask = self.no_loss_masks_layer[i][0]  if use_no_loss_mask else None
                 transform_matrix_pt3d = self.cameras[i].get_world_to_view_transform().get_matrix()[0]
                 transform_matrix_w2c_pt3d = transform_matrix_pt3d.transpose(0, 1)
@@ -644,7 +689,23 @@ class FrameSyn(torch.nn.Module):
         for i, img in enumerate(images):
             if use_only_latest_frame and i != len(images) - 1:
                 continue
+            
+            # Validate image tensor shape before conversion
+            if not isinstance(img, torch.Tensor):
+                raise TypeError(f"Image {i} is not a tensor, got {type(img)}")
+            if len(img.shape) != 4 or img.shape[0] != 1:
+                raise ValueError(f"Image {i} has invalid shape: {img.shape}. Expected (1, C, H, W)")
+            if img.shape[1] != 3:
+                raise ValueError(f"Image {i} has invalid channels: {img.shape[1]}. Expected 3 (RGB)")
+            if img.shape[2] < 2 or img.shape[3] < 2:
+                raise ValueError(f"Image {i} has invalid dimensions: {img.shape[2:4]}. Expected at least 2x2 pixels")
+            
             image = ToPILImage()(img[0])
+            
+            # Validate PIL Image
+            if image.size[0] < 2 or image.size[1] < 2:
+                raise ValueError(f"Image {i} PIL Image has invalid size: {image.size}. Expected at least 2x2 pixels")
+            
             no_loss_mask = self.no_loss_masks[i][0] if use_no_loss_mask else None
             transform_matrix_pt3d = self.cameras_archive[i].get_world_to_view_transform().get_matrix()[0]
             transform_matrix_w2c_pt3d = transform_matrix_pt3d.transpose(0, 1)

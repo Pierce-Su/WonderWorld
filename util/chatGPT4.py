@@ -8,12 +8,16 @@ import base64
 import requests
 import spacy
 import os
+import httpx
 # run 'python -m spacy download en_core_web_sm' to load english language model
 nlp = spacy.load("en_core_web_sm")
 
+# Create httpx client explicitly to avoid proxies compatibility issue
+# This prevents OpenAI from trying to pass 'proxies' parameter to httpx.Client
+http_client = httpx.Client(timeout=60.0)
 client = OpenAI(
-    # This is the default and can be omitted
     api_key=os.environ['OPENAI_API_KEY'],
+    http_client=http_client,
 )
 
 class TextpromptGen(object):
