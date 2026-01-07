@@ -438,7 +438,8 @@ def run_automated(config, camera_indices=None, prompts=None):
             fill_mask=fill_mask, 
             inpainting_prompt=inpainting_prompt, 
             mask_strategy=np.max, 
-            diffusion_steps=50
+            diffusion_steps=50,
+            self_guidance=True  # Enable self-guidance to use rendered image for visual consistency
         )
 
         sem_seg = kf_gen.update_sky_mask()

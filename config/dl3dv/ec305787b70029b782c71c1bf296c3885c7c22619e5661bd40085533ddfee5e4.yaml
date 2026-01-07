@@ -1,5 +1,5 @@
-runs_dir: output/dl3dv/dl3dv_indoor_2
-example_name: dl3dv_indoor_2
+runs_dir: output/dl3dv/indoor/ec305787b70029b782c71c1bf296c3885c7c22619e5661bd40085533ddfee5e4
+example_name: entrance_lobby
 
 seed: 1
 depth_conditioning: True
