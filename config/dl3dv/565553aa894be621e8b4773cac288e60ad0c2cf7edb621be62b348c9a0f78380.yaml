@@ -1,0 +1,26 @@
+runs_dir: output/dl3dv/regular/565553aa894be621e8b4773cac288e60ad0c2cf7edb621be62b348c9a0f78380
+example_name: whole_foods_market
+
+seed: 1
+depth_conditioning: True
+
+use_gpt: False
+debug: False
+
+# depth model and camera/depth parameters
+depth_model: marigold
+camera_speed: 0.001
+fg_depth_range: 0.015
+depth_shift: 0.001
+sky_hard_depth: 0.02
+init_focal_length: 960
+
+# first run will need sky generation
+gen_sky_image: True
+gen_sky: False
+
+# enable layer-wise generation
+gen_layer: True
+# load previously generated gaussians
+load_gen: False
+

@@ -1,0 +1,26 @@
+runs_dir: output/dl3dv/dynamic_angle/fb3b73f1d3fe9d192f21f55f5100fd258887aef345f778e0a64fc0587930a6f9
+example_name: greenhouse_garden_bench
+
+seed: 1
+depth_conditioning: True
+
+use_gpt: False
+debug: False
+
+# depth model and camera/depth parameters
+depth_model: marigold
+camera_speed: 0.001
+fg_depth_range: 0.015
+depth_shift: 0.001
+sky_hard_depth: 0.02
+init_focal_length: 960
+
+# first run will need sky generation
+gen_sky_image: True
+gen_sky: False
+
+# enable layer-wise generation
+gen_layer: True
+# load previously generated gaussians
+load_gen: False
+

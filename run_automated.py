@@ -324,17 +324,22 @@ def run_automated(config, camera_indices=None, prompts=None):
                 entities=scene_dict['entities'], 
                 style=style_prompt, 
                 background=scene_dict['background'], 
-                change_scene_name_by_user=change_scene_name_by_user
+                change_scene_name_by_user=change_scene_name_by_user,
+                maintain_continuity=False,  # Allow scene name changes
+                contextual_continuity=True    # But ensure they're contextually aware
             )
             change_scene_name_by_user = False
         else:
             # Use rotation_path-based generation (default)
+            # Allow scene names to vary but ensure contextual continuity
             scene_dict = pt_gen.wonder_next_scene(
                 scene_name=scene_name, 
                 entities=scene_dict['entities'], 
                 style=style_prompt, 
                 background=scene_dict['background'], 
-                change_scene_name_by_user=False
+                change_scene_name_by_user=False,
+                maintain_continuity=False,  # Allow scene name changes
+                contextual_continuity=True    # But ensure they're contextually aware
             )
         
         inpainting_prompt = pt_gen.generate_prompt(
@@ -496,12 +501,39 @@ def run_automated(config, camera_indices=None, prompts=None):
         
         print(f"✓ Completed scene {scene_idx + 1}/{len(camera_indices)}")
     
-    # Final save
+    # Final save - save the complete Gaussian splat model in the run directory
+    print("\n" + "="*60)
+    print("Saving final Gaussian splat model...")
+    print("="*60)
+    
+    # Save PLY file
+    final_ply_path = kf_gen.run_dir / "finished_3dgs.ply"
+    gaussians.save_ply_all_with_filter(str(final_ply_path))
+    print(f"✓ PLY file saved: {final_ply_path}")
+    
+    # Save filter masks
+    visibility_path = kf_gen.run_dir / "visibility_filter_all.pth"
+    sky_filter_path = kf_gen.run_dir / "is_sky_filter.pth"
+    delete_mask_path = kf_gen.run_dir / "delete_mask_all.pth"
+    
+    torch.save(gaussians.visibility_filter_all, str(visibility_path))
+    torch.save(gaussians.is_sky_filter, str(sky_filter_path))
+    torch.save(gaussians.delete_mask_all, str(delete_mask_path))
+    print(f"✓ Filter masks saved: {visibility_path.name}, {sky_filter_path.name}, {delete_mask_path.name}")
+    
+    # Save splat file (binary format for real-time viewers)
+    splat_path = kf_gen.run_dir / f"{example}_finished_3dgs.splat"
+    gaussians.yield_splat_data(str(splat_path))
+    print(f"✓ Splat file saved: {splat_path}")
+    
     print("\n" + "="*60)
     print("AUTOMATED GENERATION COMPLETE")
     print("="*60)
     print(f"Generated {len(camera_indices)} scenes")
-    print(f"Results saved to: {config['runs_dir']}")
+    print(f"Results saved to: {kf_gen.run_dir}")
+    print(f"  - Final PLY: {final_ply_path.name}")
+    print(f"  - Splat file: {splat_path.name}")
+    print(f"  - Scene images: images/frames/")
     print("="*60)
 
 

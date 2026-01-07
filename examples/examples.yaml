@@ -1,63 +1,69 @@
 - name: animation_lakeside_1
   image_filepath: examples/images/animation_lakeside_1.png
   style_prompt: animation
-  content_prompt: A tranquil lakeside scene, wooden house, water with waves, beach chairs 
-  negative_prompt: ""
-  background: Dense green forests and rolling hills stretch into the distance under a blue sky filled with puffy white clouds
+  content_prompt: A tranquil lakeside scene, wooden house, water with waves, beach
+    chairs
+  negative_prompt: ''
+  background: Dense green forests and rolling hills stretch into the distance under
+    a blue sky filled with puffy white clouds
 - name: animation_lakeside_2
   image_filepath: examples/images/animation_lakeside_2.png
   style_prompt: animation
-  content_prompt: A serene, idyllic seaside scene with a rustic house perched on the edge of a clear blue lake. trees and rocks near the lake, house, port in front of a house
-  negative_prompt: ""
-  background: ""
+  content_prompt: A serene, idyllic seaside scene with a rustic house perched on the
+    edge of a clear blue lake. trees and rocks near the lake, house, port in front
+    of a house
+  negative_prompt: ''
+  background: ''
 - name: arc_de_triomf
   image_filepath: examples/images/arc_de_triomf.png
   style_prompt: DSLR 35mm landscape
   content_prompt: Arc de Triomf, gate, palm trees, people
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: campus_monet
   image_filepath: examples/images/campus_monet.png
   style_prompt: Monet painting
-  content_prompt: Historic university building, prominent bell tower, lush green lawn, blue sky
-  negative_prompt: ""
-  background: ""
+  content_prompt: Historic university building, prominent bell tower, lush green lawn,
+    blue sky
+  negative_prompt: ''
+  background: ''
 - name: cathedral_1
   image_filepath: examples/images/cathedral_1.png
   style_prompt: DSLR 35mm landscape
   content_prompt: Segovia Cathedral, cathedral, lush greenery, gazebo
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: cathedral_2
   image_filepath: examples/images/cathedral_2.png
   style_prompt: DSLR 35mm landscape
-  content_prompt: Cathedral of the Holy Spirit, cathedral with its twin spires, stairway, person sitting on a bench
-  negative_prompt: ""
-  background: ""
+  content_prompt: Cathedral of the Holy Spirit, cathedral with its twin spires, stairway,
+    person sitting on a bench
+  negative_prompt: ''
+  background: ''
 - name: city_hall
   image_filepath: examples/images/city_hall.png
   style_prompt: DSLR 35mm landscape
   content_prompt: Ho Chi Minh City Hall in Vietnam, building, garden, red flag
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: city_hall_monet
   image_filepath: examples/images/city_hall_monet.png
   style_prompt: Monet painting
   content_prompt: California State Capitol, building, garden, fountain
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: city_monet_1
   image_filepath: examples/images/city_monet_1.png
   style_prompt: Monet painting
   content_prompt: A vibrant city avenue, bustling traffic, pedestrians, towering skyscrapers
-  negative_prompt: ""
-  background: "" 
+  negative_prompt: ''
+  background: ''
 - name: city_monet_2
   image_filepath: examples/images/city_monet_2.png
   style_prompt: Monet painting
   content_prompt: A vibrant city avenue, bustling traffic, pedestrians, towering skyscrapers
-  negative_prompt: ""
-  background: "" 
+  negative_prompt: ''
+  background: ''
 - name: forbidden
   image_filepath: examples/images/forbidden.png
   style_prompt: DSLR 35mm landscape
@@ -69,67 +75,73 @@
   style_prompt: Monet painting
   content_prompt: The Garden at Sainte-Adresse, flags, people, flowers
   negative_prompt: ''
-  background: ""
+  background: ''
 - name: lego
   image_filepath: examples/images/lego.png
   style_prompt: lego
-  content_prompt: A vibrant and detailed Lego scene featuring a modern, luxurious house with a swimming pool, house, people, lush vegetation
-  negative_prompt: "person, people"
-  background: ""
+  content_prompt: A vibrant and detailed Lego scene featuring a modern, luxurious
+    house with a swimming pool, house, people, lush vegetation
+  negative_prompt: person, people
+  background: ''
 - name: main_square
   image_filepath: examples/images/main_square.png
   style_prompt: DSLR 35mm landscape
   content_prompt: The main square, central fountain, clock tower, neatly trimmed trees
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: marienplatz
   image_filepath: examples/images/marienplatz.png
   style_prompt: DSLR 35mm landscape
   content_prompt: Marienplatz in Munich, bank building, old town hall, clock tower
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: minecraft
   image_filepath: examples/images/minecraft.png
   style_prompt: 3D pixel
   content_prompt: Charming 3D pixel natural scene, cottages, trees, blue sky
-  negative_prompt: ""
-  background: ""
+  negative_prompt: ''
+  background: ''
 - name: real_campus_1
   image_filepath: examples/images/real_campus_1.png
   style_prompt: campus setting DSLR 35mm landscape
-  content_prompt: Elegant building, dynamic fountain set, Mediterranean building, campus setting
-  negative_prompt: ""
-  background: ""
+  content_prompt: Elegant building, dynamic fountain set, Mediterranean building,
+    campus setting
+  negative_prompt: ''
+  background: ''
 - name: real_campus_2
   image_filepath: examples/images/real_campus_2.png
   style_prompt: campus setting DSLR 35mm landscape
-  content_prompt: Historic university building, prominent bell tower, lush green lawn, blue sky
-  negative_prompt: "text"
-  background: ""
+  content_prompt: Historic university building, prominent bell tower, lush green lawn,
+    blue sky
+  negative_prompt: text
+  background: ''
 - name: real_westlake
   image_filepath: examples/images/real_westlake.png
   style_prompt: DSLR 35mm landscape
-  content_prompt: Peaceful lakeside view, blossoming purple wisteria, calm waters, lush greenery
-  negative_prompt: ""
-  background: ""
+  content_prompt: Peaceful lakeside view, blossoming purple wisteria, calm waters,
+    lush greenery
+  negative_prompt: ''
+  background: ''
 - name: taj_mahal_monet
   image_filepath: examples/images/taj_mahal_monet.png
   style_prompt: Monet painting
-  content_prompt: Taj Mahal, Indian building, reflecting pool, surrounding cypress trees
+  content_prompt: Taj Mahal, Indian building, reflecting pool, surrounding cypress
+    trees
   negative_prompt: ''
-  background: ""
+  background: ''
 - name: ukiyo-e
   image_filepath: examples/images/ukiyo-e.png
   style_prompt: Ukiyo-e painting
   content_prompt: Japanese village, people, ancient marketplace, Mount Fuji
-  negative_prompt: ""
-  background: Bustling village scene in a traditional Ukiyo-e style depicting daily life with a backdrop of mountains and sea
+  negative_prompt: ''
+  background: Bustling village scene in a traditional Ukiyo-e style depicting daily
+    life with a backdrop of mountains and sea
 - name: venice
   image_filepath: examples/images/venice.png
   style_prompt: DSLR 35mm landscape
-  content_prompt: The Grand Canal in Venice, boats, historical buildings, waterway 
-  negative_prompt: ""
-  background: ""
+  content_prompt: The Grand Canal in Venice, boats, historical buildings, waterway
+  negative_prompt: ''
+  background: ''
 - name: village
   image_filepath: examples/images/village.png
   style_prompt: DSLR 35mm landscape
@@ -141,12 +153,91 @@
   style_prompt: Monet painting
   content_prompt: Countryside in spring, cottages, clear blue stream, market place
   negative_prompt: ''
-  background: ""
+  background: ''
 - name: zelda
   image_filepath: examples/images/zelda.png
   style_prompt: animation
-  content_prompt: Link taking adventure in a world brimming with magic and wonder, majestic mountains, river, boy 
-  negative_prompt: ""
-  background: ""
-
-
+  content_prompt: Link taking adventure in a world brimming with magic and wonder,
+    majestic mountains, river, boy
+  negative_prompt: ''
+  background: ''
+- name: statue_in_city
+  image_filepath: DL3DV_benchmark/dynamic_angle/032dee9fb0a8bc1b90871dc5fe950080d0bcd3caf166447f44e60ca50ac04ec7.png
+  style_prompt: outdoor DSLR 35mm
+  content_prompt: statues, tall building, sunlight, steps
+  # negative_prompt: text, watermark, people
+  negative_prompt: ''
+  background: urban setting with modern architecture
+- name: park_pathway_with_trash_bin
+  image_filepath: DL3DV_benchmark/dynamic_angle/15ff83e2531668d27c92091c97d31401ce323e24ee7c844cb32d5109ab9335f7.png
+  style_prompt: outdoor daytime
+  content_prompt: brick pathway, trash bin, flower beds, windows, building
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: urban setting with greenery
+- name: greenhouse_garden_bench
+  image_filepath: DL3DV_benchmark/dynamic_angle/fb3b73f1d3fe9d192f21f55f5100fd258887aef345f778e0a64fc0587930a6f9.png
+  style_prompt: indoor DSLR 35mm
+  content_prompt: garden bench, vibrant plants, greenhouse glass, wooden path
+  # negative_prompt: people, watermarks
+  negative_prompt: ''
+  background: lush garden environment, tropical plants visible
+- name: airport_exhibit
+  image_filepath: DL3DV_benchmark/indoor/8324b3ca22085040c2a0ecb7284e0cdf776b1f846b73a7c0df893587cb4a45f8.png
+  style_prompt: indoor DSLR 35mm
+  content_prompt: airport terminal, Rolls-Royce exhibit, aircraft engine, informational
+    sign, large windows
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: bright, modern airport setting with soft shadows
+- name: elegant_event_space
+  image_filepath: DL3DV_benchmark/indoor/eb4cf52988f805e6fce11d1b239fa9de32eb157364cff06ebac0aa50e0a46567.png
+  style_prompt: indoor DSLR 35mm
+  content_prompt: event space, long table, white chairs, yellow ribbons, decorative
+    plants
+  # negative_prompt: text, watermark, people
+  negative_prompt: ''
+  background: modern interior with a large window
+- name: entrance_lobby
+  image_filepath: DL3DV_benchmark/indoor/ec305787b70029b782c71c1bf296c3885c7c22619e5661bd40085533ddfee5e4.png
+  style_prompt: indoor DSLR 35mm
+  content_prompt: modern lobby, large windows, seating area, table with lamps
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: well-lit entrance with natural light
+- name: modern_architecture_entryway
+  image_filepath: DL3DV_benchmark/regular/54bf355ca7e08ed1bc86f5772e564ac0f92981ca25dab24d86b694e915fc4c43.png
+  style_prompt: indoor DSLR 35mm
+  content_prompt: modern entryway, glass roof, stone walls, shadows, structural beams
+  # negative_prompt: text, watermark, people
+  negative_prompt: ''
+  background: sunny day with clear blue sky
+- name: whole_foods_market
+  image_filepath: DL3DV_benchmark/regular/565553aa894be621e8b4773cac288e60ad0c2cf7edb621be62b348c9a0f78380.png
+  style_prompt: outdoor DSLR 35mm
+  content_prompt: modern grocery store, glass facade, urban street, trees, signage
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: cityscape with modern architecture
+- name: playground_fountain
+  image_filepath: DL3DV_benchmark/regular/b4f53094fd31dcc2de1c1d1fdfeffac5259e9bdf39d77b552ff948e4bdf1fd8e.png
+  style_prompt: outdoor DSLR 35mm
+  content_prompt: playground fountain, colorful decor, panda statue, surrounding greenery
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: abandoned amusement park ambiance
+- name: construction_site_with_temples
+  image_filepath: DL3DV_benchmark/regular/c076929db6501cf7ebe386c70e6d77ea3af844a745e794f2ec17c981c465a69b.png
+  style_prompt: outdoor DSLR 35mm
+  content_prompt: large temple complex, golden domes, wet pavement, construction materials,
+    cloudy sky
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: modern architectural design, ongoing construction
+- name: bus_station
+  image_filepath: DL3DV_benchmark/regular/d3812aad538261e7f73c75762ff55f23b468bcc76f376d52ac86ca6cf3c44b4b.png
+  style_prompt: outdoor DSLR 35mm
+  content_prompt: bus stop shelter, sidewalk, street lights, clear blue sky
+  # negative_prompt: people, text, watermark
+  negative_prompt: ''
+  background: urban train station vicinity

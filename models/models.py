@@ -1157,8 +1157,13 @@ class KeyframeGen(FrameSyn):
 
             new_img = ToTensor()(img).unsqueeze(0).to(self.device)
             mask_image_ = mask_image.expand(-1, 3, -1, -1).bool()
-            loss = F.mse_loss(new_img[~mask_image_], init_image[~mask_image_]).cpu().item()
-            print(f"[INFO] Sky Loss: {loss}")
+            unmasked_pixels = ~mask_image_
+            if unmasked_pixels.any():
+                loss = F.mse_loss(new_img[unmasked_pixels], init_image[unmasked_pixels]).cpu().item()
+            else:
+                # All pixels are masked (entire image is sky), no reference pixels to compare
+                loss = 0.0
+            print(f"[INFO] Sky Loss: {loss} (No sky for this scene! It is likely indoors.)")
 
             # move conditioning image to the leftmost, and save it
             if layer == 0:
@@ -1214,8 +1219,12 @@ class KeyframeGen(FrameSyn):
 
         # Remove points below the ground height
         sky_rows_idx = torch.where(mask.any(dim=1))[0]
-        max_idx = sky_rows_idx.max().item()
-        ground_threshold = -0.0003 if max_idx <= 255 else -0.003
+        if sky_rows_idx.numel() == 0:
+            # No sky detected (e.g., indoor scenes), use default threshold
+            ground_threshold = -0.0003
+        else:
+            max_idx = sky_rows_idx.max().item()
+            ground_threshold = -0.0003 if max_idx <= 255 else -0.003
         mask_above_ground = new_points_3d[:, 1] >= ground_threshold
         new_points_3d = new_points_3d[mask_above_ground]
         colors = colors[mask_above_ground]

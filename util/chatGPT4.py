@@ -82,8 +82,17 @@ class TextpromptGen(object):
 
         return background.strip(".")
     
-    def wonder_next_scene(self, style=None, entities=None, scene_name=None, background=None, change_scene_name_by_user=False):
-
+    def wonder_next_scene(self, style=None, entities=None, scene_name=None, background=None, change_scene_name_by_user=False, maintain_continuity=False, contextual_continuity=True):
+        """
+        Generate next scene description.
+        
+        Args:
+            maintain_continuity: If True, keep scene_name consistent and only evolve entities gradually.
+                                This is useful for automated generation where camera moves smoothly.
+            contextual_continuity: If True, allow scene names to change but ensure transitions are
+                                  contextually aware and gradual (e.g., "campus" → "campus courtyard" 
+                                  or "campus" → "library" is ok, but "campus" → "beach" is not).
+        """
         ######################################
         # Input ------------------------------
         # scene_name: str
@@ -111,7 +120,24 @@ class TextpromptGen(object):
         else:
             assert self.scene_num > 0, 'To regenerate the scene description, you should have at least one scene content as prompt.'
             
-        if change_scene_name_by_user:
+        if maintain_continuity:
+            # For automated generation: keep scene name consistent, only evolve entities gradually
+            # This maintains visual continuity when camera moves smoothly
+            messages = [{"role": "system", "content": "You are an intelligent scene generator for 3D scene synthesis. You are generating a NEW VIEW of the SAME SCENE by moving the camera slightly. The scene name should remain: '" + str(scene_name) + "'. Only the entities (objects visible in this new view) may change slightly as you see different parts of the same scene. Generate 3 most significant entities visible in this new camera view. The entities should be consistent with the existing scene and style. Also generate a brief background prompt about 30-50 words describing the scene context (do not mention entities). The output should be json format:\n \
+                        {'scene_name': ['" + str(scene_name) + "'], 'entities': ['entity_1', 'entity_2', 'entity_3'], 'background': ['background prompt']}"}, \
+                        {"role": "user", "content": "Previous scenes:\n" + self.content + "\n\nGenerate entities for a new camera view of the same scene. Keep scene_name as '" + str(scene_name) + "'."}]
+        elif contextual_continuity:
+            # Allow scene name changes but ensure they are contextually aware and gradual
+            # Scene transitions should feel like natural progressions through a connected space
+            messages = [{"role": "system", "content": "You are an intelligent scene generator for 3D scene synthesis. You are generating the NEXT SCENE as a camera moves through a connected 3D space. The scene name CAN change, but transitions must be CONTEXTUALLY AWARE and GRADUAL. Consider:\n" + 
+                        "- The current scene is: '" + str(scene_name) + "' with entities: " + str(entities) + "\n" +
+                        "- Scene names should progress naturally (e.g., 'campus' → 'campus courtyard' or 'campus' → 'library' is good, but 'campus' → 'beach' is too drastic)\n" +
+                        "- New scenes should feel like adjacent areas in the same environment\n" +
+                        "- Entities should have logical overlap or connection with previous scenes\n" +
+                        "- Generate a scene name, 3 most significant entities, and a brief background prompt (30-50 words, no entities mentioned)\n" +
+                        "- Output format (json): {'scene_name': ['scene_name'], 'entities': ['entity_1', 'entity_2', 'entity_3'], 'background': ['background prompt']}"}, \
+                        {"role": "user", "content": "Previous scenes in sequence:\n" + self.content + "\n\nGenerate the next contextually connected scene. The transition should feel natural and gradual."}]
+        elif change_scene_name_by_user:
             messages = [{"role": "system", "content": "You are an intelligent scene generator. Imaging you are wandering through a scene or a sequence of scenes, and there are 3 most significant common entities in each scene. The next scene you would go to is " + scene_name + ". Please generate the correspondant 3 most common entities in this scene. The scenes are sequentially interconnected, and the entities within the scenes are adapted to match and fit with the scenes. You also have to generate a brief background prompt about 50 words describing the scene. You should not mention the entities in the background prompt. If needed, you can make reasonable guesses. Please use the format below: (the output should be json format)\n \
                         {'scene_name': ['scene_name'], 'entities': ['entity_1', 'entity_2', 'entity_3'], 'background': ['background prompt']}"}, \
                         {"role": "user", "content": self.content}]
@@ -141,6 +167,14 @@ class TextpromptGen(object):
                         output['entities'] = [output['entities']]
                     if isinstance(output['background'], str):
                         output['background'] = [output['background']]
+                    
+                    # Enforce scene_name consistency if maintain_continuity is True
+                    if maintain_continuity and isinstance(scene_name, str):
+                        output['scene_name'] = [scene_name]
+                    
+                    # For contextual_continuity, validate that scene name change is reasonable
+                    # (This is a soft check - we trust GPT but could add validation here)
+                    
                     break
                 except Exception as e:
                     assistant_message = {"role": "assistant", "content": response}
@@ -171,7 +205,7 @@ class TextpromptGen(object):
         for token in doc:
             if token.pos_ != "NOUN" and token.pos_ != "ADJ":
                 continue
-            
+                
             if token.pos_ == "NOUN":
                 if adj:
                     text += (" " + token.text)
