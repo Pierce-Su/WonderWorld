@@ -46,6 +46,7 @@ from syncdiffusion.syncdiffusion_model import SyncDiffusion
 from kornia.morphology import dilation
 import warnings
 import os
+import json
 warnings.filterwarnings("ignore")
 
 xyz_scale = 1000
@@ -270,8 +271,7 @@ def run_automated(config, camera_indices=None, prompts=None):
     gaussians = GaussianModel(sh_degree=0, previous_gaussian=gaussians)
     scene = Scene(traindata, gaussians, opt)
     dt_string = datetime.now().strftime("%d-%m_%H-%M-%S")
-    i = 0
-    save_dir = Path(config['runs_dir']) / f"{dt_string}_gaussian_scene{i:02d}"
+    save_dir = Path(config['runs_dir']) / f"{dt_string}_gaussian_scene{0:02d}"
     train_gaussian(gaussians, scene, opt, save_dir)
 
     tdgs_cam = convert_pt3d_cam_to_3dgs_cam(kf_gen.get_camera_at_origin(), xyz_scale=xyz_scale)
@@ -295,6 +295,19 @@ def run_automated(config, camera_indices=None, prompts=None):
     else:
         print("Using rotation_path-based generation")
     print(f"{'='*60}\n")
+    
+    # Initialize logging for scene generation
+    generation_log = {
+        "example_name": example,
+        "style_prompt": style_prompt,
+        "initial_scene": {
+            "scene_name": scene_name,
+            "entities": entities,
+            "background": background_prompt
+        },
+        "scenes": []
+    }
+    log_file_path = Path(config['runs_dir']) / "generation_log.json"
     
     gaussians_tmp = copy.deepcopy(gaussians)
     
@@ -350,7 +363,33 @@ def run_automated(config, camera_indices=None, prompts=None):
         )
         scene_name = scene_dict['scene_name'] if isinstance(scene_dict['scene_name'], str) else scene_dict['scene_name'][0]
         
-        print(f"Scene prompt: {inpainting_prompt}")
+        # Extract background text for logging
+        background_text = scene_dict['background']
+        if isinstance(background_text, list):
+            background_text = background_text[0] if background_text else ""
+        
+        # Log this scene's information
+        scene_log_entry = {
+            "scene_index": scene_idx + 1,
+            "camera_index": cam_idx,
+            "scene_name": scene_name,
+            "entities": scene_dict['entities'] if isinstance(scene_dict['entities'], list) else [scene_dict['entities']],
+            "background": background_text,
+            "inpainting_prompt": inpainting_prompt,
+            "style_prompt": style_prompt,
+            "negative_prompt": adaptive_negative_prompt
+        }
+        generation_log["scenes"].append(scene_log_entry)
+        
+        # Print detailed scene information
+        print(f"\n{'='*60}")
+        print(f"SCENE {scene_idx + 1}/{len(camera_indices)} - Camera {cam_idx}")
+        print(f"{'='*60}")
+        print(f"Scene Name: {scene_name}")
+        print(f"Entities: {', '.join(scene_dict['entities'] if isinstance(scene_dict['entities'], list) else [scene_dict['entities']])}")
+        print(f"Background: {background_text}")
+        print(f"Inpainting Prompt: {inpainting_prompt}")
+        print(f"{'='*60}\n")
         
         # Generate scene (same as run.py)
         kf_gen.set_kf_param(
@@ -467,7 +506,7 @@ def run_automated(config, camera_indices=None, prompts=None):
             gaussians = GaussianModel(sh_degree=0, previous_gaussian=gaussians)
             scene = Scene(traindata_layer, gaussians, opt)
             dt_string = datetime.now().strftime("%d-%m_%H-%M-%S")
-            save_dir = Path(config['runs_dir']) / f"{dt_string}_gaussian_scene_layer{i+1:02d}"
+            save_dir = Path(config['runs_dir']) / f"{dt_string}_gaussian_scene_layer{scene_idx+1:02d}"
             train_gaussian(gaussians, scene, opt, save_dir)
         else:
             traindata = kf_gen.convert_to_3dgs_traindata_latest(xyz_scale=xyz_scale, use_no_loss_mask=False)
@@ -491,13 +530,19 @@ def run_automated(config, camera_indices=None, prompts=None):
         gaussians = GaussianModel(sh_degree=0, previous_gaussian=gaussians)
         scene = Scene(traindata, gaussians, opt)
         dt_string = datetime.now().strftime("%d-%m_%H-%M-%S")
-        save_dir = Path(config['runs_dir']) / f"{dt_string}_gaussian_scene{i+1:02d}"
+        save_dir = Path(config['runs_dir']) / f"{dt_string}_gaussian_scene{scene_idx+1:02d}"
         train_gaussian(gaussians, scene, opt, save_dir)
         
         gaussians.set_inscreen_points_to_visible(tdgs_cam)
         kf_gen.increment_kf_idx()
         gaussians_tmp = copy.deepcopy(gaussians)
         empty_cache()
+        
+        # Save log incrementally after each scene (in case of crash)
+        generation_log["total_scenes"] = len(camera_indices)
+        generation_log["completed_scenes"] = scene_idx + 1
+        with open(log_file_path, 'w') as f:
+            json.dump(generation_log, f, indent=2)
         
         print(f"✓ Completed scene {scene_idx + 1}/{len(camera_indices)}")
     
@@ -526,6 +571,13 @@ def run_automated(config, camera_indices=None, prompts=None):
     gaussians.yield_splat_data(str(splat_path))
     print(f"✓ Splat file saved: {splat_path}")
     
+    # Finalize and save generation log
+    generation_log["total_scenes"] = len(camera_indices)
+    generation_log["completed_scenes"] = len(camera_indices)
+    generation_log["completion_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(log_file_path, 'w') as f:
+        json.dump(generation_log, f, indent=2)
+    
     print("\n" + "="*60)
     print("AUTOMATED GENERATION COMPLETE")
     print("="*60)
@@ -534,6 +586,18 @@ def run_automated(config, camera_indices=None, prompts=None):
     print(f"  - Final PLY: {final_ply_path.name}")
     print(f"  - Splat file: {splat_path.name}")
     print(f"  - Scene images: images/frames/")
+    print(f"  - Generation log: {log_file_path.name}")
+    print("="*60)
+    
+    # Print summary of scene names
+    print("\n" + "="*60)
+    print("SCENE GENERATION SUMMARY")
+    print("="*60)
+    print(f"Style: {style_prompt}")
+    print(f"\nScene Progression:")
+    for i, scene in enumerate(generation_log["scenes"], 1):
+        print(f"  {i}. {scene['scene_name']} (Camera {scene['camera_index']})")
+        print(f"     Entities: {', '.join(scene['entities'])}")
     print("="*60)
 
 
