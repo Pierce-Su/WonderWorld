@@ -16,7 +16,7 @@ sky_hard_depth: 0.02
 init_focal_length: 960
 
 # first run will need sky generation
-gen_sky_image: True
+gen_sky_image: False
 gen_sky: False
 
 # enable layer-wise generation

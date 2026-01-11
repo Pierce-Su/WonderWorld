@@ -53,6 +53,44 @@ xyz_scale = 1000
 background = torch.tensor([0.7, 0.7, 0.7], dtype=torch.float32, device='cuda')
 
 
+def crop_to_square(image, target_size=512):
+    """
+    Crop image to square by preserving aspect ratio and center cropping.
+    
+    Args:
+        image: PIL Image
+        target_size: Target square size (default 512)
+    
+    Returns:
+        PIL Image cropped to target_size x target_size
+    """
+    width, height = image.size
+    
+    # If already square, just resize
+    if width == height:
+        return image.resize((target_size, target_size), Image.Resampling.LANCZOS)
+    
+    # Resize so the smaller dimension becomes target_size (preserves aspect ratio)
+    if width < height:
+        # Portrait: resize width to target_size
+        new_width = target_size
+        new_height = int(height * (target_size / width))
+    else:
+        # Landscape: resize height to target_size
+        new_height = target_size
+        new_width = int(width * (target_size / height))
+    
+    resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    
+    # Center crop to square
+    left = (new_width - target_size) // 2
+    top = (new_height - target_size) // 2
+    right = left + target_size
+    bottom = top + target_size
+    
+    return resized.crop((left, top, right, bottom))
+
+
 def camera_to_view_matrix(camera, xyz_scale=1000):
     """
     Convert PyTorch3D camera to view matrix (16-element list).
@@ -161,6 +199,23 @@ def run_automated(config, camera_indices=None, prompts=None):
     """
     global xyz_scale, background
     
+    # Define fixed view matrix for warped sky visualization (same as interactive mode)
+    view_matrix_fixed = np.array([
+        [-1, 0, 0, 0],
+        [0, -1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0.2, 0.5, 1]
+    ])
+    theta = np.radians(-3)
+    rotation_matrix_x = np.array([
+        [1, 0, 0, 0],
+        [0, np.cos(theta), -np.sin(theta), 0],
+        [0, np.sin(theta), np.cos(theta), 0],
+        [0, 0, 0, 1]
+    ])
+    view_matrix_fixed = np.dot(view_matrix_fixed, rotation_matrix_x)
+    view_matrix_fixed = view_matrix_fixed.flatten().tolist()
+    
     seeding(config["seed"])
     example = config['example_name']
 
@@ -198,7 +253,7 @@ def run_automated(config, camera_indices=None, prompts=None):
     if adaptive_negative_prompt != "":
         adaptive_negative_prompt += ", "
 
-    start_keyframe = Image.open(yaml_data['image_filepath']).convert('RGB').resize((512, 512))
+    start_keyframe = crop_to_square(Image.open(yaml_data['image_filepath']).convert('RGB'), target_size=512)
     kf_gen.image_latest = ToTensor()(start_keyframe).unsqueeze(0).to(config['device'])
     
     # Sky generation
@@ -276,6 +331,24 @@ def run_automated(config, camera_indices=None, prompts=None):
 
     tdgs_cam = convert_pt3d_cam_to_3dgs_cam(kf_gen.get_camera_at_origin(), xyz_scale=xyz_scale)
     gaussians.set_inscreen_points_to_visible(tdgs_cam)
+    
+    # Render and save initial warped sky visualization (scene 0)
+    print("Rendering initial warped sky view...")
+    with torch.no_grad():
+        tdgs_cam_viz = convert_pt3d_cam_to_3dgs_cam(
+            kf_gen.get_camera_by_js_view_matrix(view_matrix_fixed, xyz_scale=xyz_scale, big_view=True), 
+            xyz_scale=xyz_scale
+        )
+        tdgs_cam_viz.image_width = 1536
+        render_pkg_viz = render(tdgs_cam_viz, gaussians, opt, background, render_visible=True)
+        rendered_img_viz = render_pkg_viz['render']
+        
+        # Save warped sky visualization
+        viz_dir = kf_gen.run_dir / "warped_sky_views"
+        viz_dir.mkdir(exist_ok=True)
+        viz_path = viz_dir / "scene_00_warped_sky.png"
+        ToPILImage()(rendered_img_viz).save(viz_path)
+        print(f"✓ Saved initial warped sky view: {viz_path}")
     
     # Determine camera indices to use
     if camera_indices is None:
@@ -537,6 +610,25 @@ def run_automated(config, camera_indices=None, prompts=None):
         gaussians.set_inscreen_points_to_visible(tdgs_cam)
         kf_gen.increment_kf_idx()
         gaussians_tmp = copy.deepcopy(gaussians)
+        
+        # Render and save warped sky visualization (flat view plane)
+        print(f"Rendering warped sky view for scene {scene_idx + 1}...")
+        with torch.no_grad():
+            tdgs_cam_viz = convert_pt3d_cam_to_3dgs_cam(
+                kf_gen.get_camera_by_js_view_matrix(view_matrix_fixed, xyz_scale=xyz_scale, big_view=True), 
+                xyz_scale=xyz_scale
+            )
+            tdgs_cam_viz.image_width = 1536
+            render_pkg_viz = render(tdgs_cam_viz, gaussians, opt, background, render_visible=True)
+            rendered_img_viz = render_pkg_viz['render']
+            
+            # Save warped sky visualization
+            viz_dir = kf_gen.run_dir / "warped_sky_views"
+            viz_dir.mkdir(exist_ok=True)
+            viz_path = viz_dir / f"scene_{scene_idx+1:02d}_warped_sky.png"
+            ToPILImage()(rendered_img_viz).save(viz_path)
+            print(f"✓ Saved warped sky view: {viz_path}")
+        
         empty_cache()
         
         # Save log incrementally after each scene (in case of crash)
@@ -587,6 +679,7 @@ def run_automated(config, camera_indices=None, prompts=None):
     print(f"  - Final PLY: {final_ply_path.name}")
     print(f"  - Splat file: {splat_path.name}")
     print(f"  - Scene images: images/frames/")
+    print(f"  - Warped sky views: warped_sky_views/")
     print(f"  - Generation log: {log_file_path.name}")
     print("="*60)
     

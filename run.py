@@ -97,6 +97,44 @@ def empty_cache():
     gc.collect()
 
 
+def crop_to_square(image, target_size=512):
+    """
+    Crop image to square by preserving aspect ratio and center cropping.
+    
+    Args:
+        image: PIL Image
+        target_size: Target square size (default 512)
+    
+    Returns:
+        PIL Image cropped to target_size x target_size
+    """
+    width, height = image.size
+    
+    # If already square, just resize
+    if width == height:
+        return image.resize((target_size, target_size), Image.Resampling.LANCZOS)
+    
+    # Resize so the smaller dimension becomes target_size (preserves aspect ratio)
+    if width < height:
+        # Portrait: resize width to target_size
+        new_width = target_size
+        new_height = int(height * (target_size / width))
+    else:
+        # Landscape: resize height to target_size
+        new_height = target_size
+        new_width = int(width * (target_size / height))
+    
+    resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    
+    # Center crop to square
+    left = (new_width - target_size) // 2
+    top = (new_height - target_size) // 2
+    right = left + target_size
+    bottom = top + target_size
+    
+    return resized.crop((left, top, right, bottom))
+
+
 def seeding(seed):
     if seed == -1:
         seed = np.random.randint(2 ** 32)
@@ -150,7 +188,7 @@ def run(config):
     if adaptive_negative_prompt != "":
         adaptive_negative_prompt += ", "
 
-    start_keyframe = Image.open(yaml_data['image_filepath']).convert('RGB').resize((512, 512))
+    start_keyframe = crop_to_square(Image.open(yaml_data['image_filepath']).convert('RGB'), target_size=512)
     kf_gen.image_latest = ToTensor()(start_keyframe).unsqueeze(0).to(config['device'])
     
     if config['gen_sky_image'] or (not os.path.exists(f'examples/sky_images/{example}/sky_0.png') and not os.path.exists(f'examples/sky_images/{example}/sky_1.png')):

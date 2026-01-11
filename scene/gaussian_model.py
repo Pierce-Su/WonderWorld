@@ -284,7 +284,10 @@ class GaussianModel:
             cos_yz = torch.sum(point_normals_in_screen_yoz * screen_normal_yoz, dim=1)
             # assert torch.all(cos_yz >= 0), "All normals should be in the same direction of the screen normal. Current min value: {}".format(cos_yz.min())
         
-        distance[~valid_points] = distance[valid_points].max()
+        # Set invalid points to max distance of valid points, or keep default if no valid points
+        if valid_points.any():
+            distance[~valid_points] = distance[valid_points].max()
+        # If no valid points, keep the default large distance (100000.0)
         
         #TODO remove hard coded value
         #TODO box to gaussian transform

@@ -13,7 +13,7 @@ camera_speed: 0.001
 fg_depth_range: 0.015
 depth_shift: 0.001
 sky_hard_depth: 0.02
-init_focal_length: 960
+init_focal_length: 185
 
 # first run will need sky generation
 gen_sky_image: True
